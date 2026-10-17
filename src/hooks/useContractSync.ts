@@ -2,6 +2,7 @@ import { useCallback } from "react";
 import { useQueryClient, type QueryClient } from "@tanstack/react-query";
 import { useSubscription } from "./useSubscription";
 import { browserStellarConfig } from "@/lib/stellar/browserConfig";
+import { contractReadCache } from "@/lib/stellar/contractReadCache";
 
 /**
  * Sync strategy: hybrid approach
@@ -38,6 +39,8 @@ import { browserStellarConfig } from "@/lib/stellar/browserConfig";
 const POLL_INTERVAL_MS = 10_000;
 
 export function invalidateAllPromptQueries(queryClient: QueryClient) {
+  // Contract state changed, so any cached contract reads are stale too.
+  contractReadCache.clear();
   return Promise.all([
     queryClient.invalidateQueries({ queryKey: ["marketplace-prompts"] }),
     queryClient.invalidateQueries({ queryKey: ["created-prompts"] }),

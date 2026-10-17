@@ -1,4 +1,5 @@
 import { useEffect, useState } from "react";
+import { Link } from "react-router-dom";
 import {
   Activity,
   AlertTriangle,
@@ -135,6 +136,15 @@ export default function StatusPage() {
             <h1 className="text-2xl font-semibold text-white">Service Status</h1>
             <p className="text-xs text-slate-400">Live health of Stellar RPC, Horizon, and Unlock service.</p>
           </div>
+        </div>
+
+        <div className="mb-4 flex justify-end">
+          <Link
+            to="/status/networks"
+            className="text-sm font-medium text-cyan-200 hover:text-cyan-100"
+          >
+            View multi-network support →
+          </Link>
         </div>
 
         {/* Overall banner */}
