@@ -16,6 +16,7 @@ const PromptDetailPage = lazy(() => import("./pages/prompt/page.tsx"));
 const CreatorSharePage = lazy(() => import("./pages/creator/page.tsx"));
 const ComparePage = lazy(() => import("./pages/compare/page.tsx"));
 const StatusPage = lazy(() => import("./pages/status/page.tsx"));
+const MultiNetworkStatusPage = lazy(() => import("./pages/status/networks.tsx"));
 const ModerationPage = lazy(() => import("./pages/Moderation.tsx"));
 const ReviewPolicyPage = lazy(() => import("./pages/ReviewPolicy.tsx"));
 const AppealsPage = lazy(() => import("./pages/Appeals.tsx"));
@@ -133,6 +134,14 @@ function ApplicationShell() {
             element={
               <SuspenseRoute routeName="Status">
                 <StatusPage />
+              </SuspenseRoute>
+            }
+          />
+          <Route
+            path="/status/networks"
+            element={
+              <SuspenseRoute routeName="Network Status">
+                <MultiNetworkStatusPage />
               </SuspenseRoute>
             }
           />

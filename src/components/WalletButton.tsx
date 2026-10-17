@@ -3,9 +3,10 @@ import { Button } from "@stellar/design-system";
 import { useWallet } from "../hooks/useWallet";
 import { shortenAddress } from "@/lib/utils";
 import { Button as ShadcnButton } from "./ui/button";
-import { Loader2, AlertCircle, X } from "lucide-react";
+import { Loader2, AlertCircle, LifeBuoy, X } from "lucide-react";
 import { getSupportedWallets } from "@/util/wallet";
 import { trackEvent } from "@/lib/analytics/track";
+import { WalletErrorRecoveryModal } from "@/components/WalletErrorRecoveryModal";
 
 const KNOWN_WALLETS: { id: string; name: string }[] = [
   { id: "freighter", name: "Freighter" },
@@ -16,6 +17,7 @@ const KNOWN_WALLETS: { id: string; name: string }[] = [
 export const WalletButton = () => {
   const [showModal, setShowModal] = useState(false);
   const [showDisconnectModal, setShowDisconnectModal] = useState(false);
+  const [showRecovery, setShowRecovery] = useState(false);
   const { address, status, error, connect, disconnect, reconnect } = useWallet();
   const [dismissedError, setDismissedError] = useState<string | null>(null);
   const [checkingWallets, setCheckingWallets] = useState(false);
@@ -71,6 +73,14 @@ export const WalletButton = () => {
         <div className="absolute bottom-full right-0 mb-2 w-max max-w-xs bg-red-500 text-white text-xs pl-3 pr-2 py-2 rounded shadow-lg whitespace-normal z-50 flex items-start gap-1">
           <AlertCircle className="w-4 h-4 shrink-0 mt-0.5" />
           <span className="flex-1">{error}</span>
+          <button
+            onClick={() => setShowRecovery(true)}
+            className="opacity-90 hover:opacity-100 transition-opacity ml-1 inline-flex items-center gap-1 rounded px-1 py-0.5 font-semibold underline underline-offset-2"
+            aria-label="Open wallet error recovery and diagnostics"
+          >
+            <LifeBuoy className="w-3 h-3" />
+            Recover
+          </button>
           <button onClick={() => setDismissedError(error)} className="opacity-80 hover:opacity-100 transition-opacity ml-1 p-0.5" aria-label="Dismiss error">
             <X className="w-3 h-3" />
           </button>
@@ -175,6 +185,20 @@ export const WalletButton = () => {
           </div>
         </div>
       )}
+
+      <WalletErrorRecoveryModal
+        open={showRecovery && status === "error"}
+        error={error}
+        onClose={() => setShowRecovery(false)}
+        onRetry={() => {
+          setShowRecovery(false);
+          void reconnect();
+        }}
+        onDisconnect={() => {
+          setShowRecovery(false);
+          void disconnect();
+        }}
+      />
     </div>
   );
 };

@@ -2,6 +2,7 @@ import { Button } from "./ui/button";
 // import Link from "next/link"
 import { Link } from "react-router-dom";
 import { X } from "lucide-react";
+import { NetworkSelector } from "./NetworkSelector";
 
 export function Footer() {
   return (
@@ -64,6 +65,14 @@ export function Footer() {
                   Support
                 </Link>
               </li>
+              <li>
+                <Link
+                  to="/status/networks"
+                  className="text-sm text-gray-400 hover:text-white"
+                >
+                  Network Status
+                </Link>
+              </li>
             </ul>
           </div>
           <div>
@@ -121,10 +130,11 @@ export function Footer() {
             </div>
           </div>
         </div>
-        <div className="mt-10 border-t border-gray-800 pt-8 text-center">
+        <div className="mt-10 flex flex-col items-center justify-between gap-4 border-t border-gray-800 pt-8 sm:flex-row">
           <p className="text-sm text-gray-400">
             © {new Date().getFullYear()} PromptHash. All rights reserved.
           </p>
+          <NetworkSelector />
         </div>
       </div>
     </footer>
