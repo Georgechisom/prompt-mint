@@ -74,7 +74,9 @@
     "wallet": {
       "connect_required": "先にウォレットを接続してください。",
       "network_mismatch": "ウォレットに設定されているネットワークが正しくありません。",
-      "disconnect_failed": "ウォレットの切断に失敗しました。"
+      "disconnect_failed": "ウォレットの切断に失敗しました。",
+      "network_switch_warning": "ウォレットが {{currentNetwork}} から {{expectedNetwork}} に切り替わりました。{{expectedNetwork}} に戻して、署名する前に再接続してください。",
+      "acknowledge_network_switch": "正しいネットワークに再接続しました。"
     },
     "review": {
       "self_vote": "自分自身のレビューには投票できません。",

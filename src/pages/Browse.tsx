@@ -35,7 +35,12 @@ export default function Browse() {
       pendingMessage: "Processing purchase on the Stellar network...",
       successMessage: "Purchase complete! Prompt unlocked.",
       onOptimistic: (itemId) => {
+        const previous = new Set(optimisticPurchases);
         setOptimisticPurchases((prev) => new Set(prev).add(itemId));
+        return () => setOptimisticPurchases(previous);
+      },
+      onRollback: (rollback) => {
+        if (typeof rollback === "function") rollback();
       },
       onSuccess: () => {
         // Invalidate to refresh the account balance and purchased status

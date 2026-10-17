@@ -56,6 +56,7 @@ import {
   buildPromptShareUrl,
 } from "@/lib/marketplace/shareUrls";
 import { translateError } from "../../lib/i18n-errors";
+import { useTranslation } from "react-i18next";
 import { createFocusTrapKeydownHandler } from "@/lib/a11y/focusTrap";
 import { explorerTxUrl } from "../../lib/stellar/explorer";
 import { recordTransaction } from "../../lib/history/transactions";
@@ -262,6 +263,9 @@ export const PromptModal: React.FC<PromptModalProps> = ({
   onRefresh,
 }) => {
   const wallet = useContext(WalletContext);
+  const networkSwitchWarning = wallet.networkSwitchWarning;
+  const acknowledgeNetworkSwitch = wallet.acknowledgeNetworkSwitch;
+  const { t } = useTranslation();
   const queryClient = useQueryClient();
   const { addToCart, isInCart } = useAddToCart();
 
@@ -668,12 +672,34 @@ export const PromptModal: React.FC<PromptModalProps> = ({
                   )}
 
                   <div className="flex flex-wrap gap-3">
+                    {networkSwitchWarning && (
+                      <div className="p-3 rounded-xl bg-amber-500/10 border border-amber-500/20 text-xs text-amber-200 mb-3 flex flex-col gap-1">
+                        <p className="font-bold text-amber-300">Wallet switched networks</p>
+                        <p className="leading-relaxed">
+                          {t("wallet.network_switch_warning", {
+                            currentNetwork: networkSwitchWarning.currentNetwork,
+                            expectedNetwork: networkSwitchWarning.expectedNetwork,
+                          })}
+                        </p>
+                        <button
+                          onClick={() => {
+                            acknowledgeNetworkSwitch();
+                            void wallet.reconnect?.();
+                          }}
+                          className="mt-1 h-7 text-xs text-amber-400 hover:text-amber-300 underline"
+                        >
+                          {t("wallet.acknowledge_network_switch")}
+                        </button>
+                      </div>
+                    )}
                     <button
                       onClick={() => runPurchase().catch(() => {})}
                       disabled={
                         isPurchasing ||
+                        !!networkSwitchWarning ||
                         !networkState.canTrustConfirmation ||
-                        detectNetworkMismatch(!!wallet?.address, wallet?.network, wallet?.status).type !== "correct"
+                        detectNetworkMismatch(!!wallet?.address, wallet?.network, wallet?.status)
+                          .type !== "correct"
                       }
                       className="flex-1 group h-14 bg-white text-slate-950 hover:bg-emerald-400 font-black rounded-2xl transition-all flex items-center justify-center gap-2 disabled:opacity-50 disabled:cursor-not-allowed"
                     >

@@ -74,7 +74,9 @@
     "wallet": {
       "connect_required": "Conecte su billetera primero.",
       "network_mismatch": "Red incorrecta configurada en su billetera.",
-      "disconnect_failed": "Error al desconectar la billetera."
+      "disconnect_failed": "Error al desconectar la billetera.",
+      "network_switch_warning": "Su billetera cambió de {{currentNetwork}} a {{expectedNetwork}}. Vuelva a {{expectedNetwork}} y reconéctese antes de firmar.",
+      "acknowledge_network_switch": "Me he reconectado en la red correcta."
     },
     "review": {
       "self_vote": "No puede votar en su propia reseña.",
