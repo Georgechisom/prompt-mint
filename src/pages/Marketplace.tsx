@@ -50,7 +50,13 @@ export default function Marketplace() {
       successMessage: "Purchase complete! Item unlocked.",
       // Optimistic UI update: disable button and show "Purchasing..."
       onOptimistic: (itemId) => {
+        const previous = new Set(optimisticPurchases);
         setOptimisticPurchases((prev) => new Set(prev).add(itemId));
+        return () => setOptimisticPurchases(previous);
+      },
+      // Roll back optimistic state when a purchase fails.
+      onRollback: (rollback) => {
+        if (typeof rollback === "function") rollback();
       },
       // Query Invalidation: trigger re-fetch of balance and items on success
       onSuccess: () => {

@@ -74,7 +74,9 @@
     "wallet": {
       "connect_required": "Veuillez d'abord connecter votre portefeuille.",
       "network_mismatch": "Mauvais réseau configuré dans votre portefeuille.",
-      "disconnect_failed": "Échec de la déconnexion du portefeuille."
+      "disconnect_failed": "Échec de la déconnexion du portefeuille.",
+      "network_switch_warning": "Votre portefeuille est passé de {{currentNetwork}} à {{expectedNetwork}}. Veuillez revenir à {{expectedNetwork}} et vous reconnecter avant de signer.",
+      "acknowledge_network_switch": "Je me suis reconnecté sur le bon réseau."
     },
     "review": {
       "self_vote": "Vous ne pouvez pas voter sur votre propre avis.",

@@ -43,15 +43,61 @@ const translateStellarError = (error: unknown): string => {
   return err.message ? translateError(err.message) : translateError("unknown");
 };
 
+/**
+ * Classifies errors for the wallet-mutation retry policy (#691).
+ * Signing / authorization / user-rejection / balance errors are never
+ * auto-retried because retrying them would force the user to re-sign or
+ * would not resolve the underlying blocker. Transient network/RPC/timeout
+ * failures are retryable.
+ */
+function isRetryableError(error: Error): boolean {
+  const message = error.message.toLowerCase();
+  const neverRetry = [
+    "tx_bad_auth",
+    "tx_bad_auth_extra",
+    "invalid_signature",
+    "user rejected",
+    "user denied",
+    "signature is invalid",
+    "reconnect your wallet",
+    "wallet not connected",
+    "insufficient",
+    "underfunded",
+    "wrong network",
+    "not connected",
+  ];
+  if (neverRetry.some((token) => message.includes(token))) {
+    return false;
+  }
+  const retryable = [
+    "network",
+    "connection",
+    "timeout",
+    "timed out",
+    "rpc",
+    "502",
+    "503",
+    "504",
+  ];
+  return retryable.some((token) => message.includes(token));
+}
+
+function sleep(ms: number): Promise<void> {
+  return new Promise((resolve) => setTimeout(resolve, ms));
+}
+
 /* eslint-disable no-unused-vars */
 interface UseAsyncTransactionOptions<TData, TVariables> {
-  onOptimistic?: (_variables: TVariables) => void;
+  onOptimistic?: (_variables: TVariables) => unknown;
+  onRollback?: (_error: Error, _variables: TVariables, _rollbackData: unknown) => void;
   onSuccess?: (_data: TData, _variables: TVariables) => void;
   onError?: (_error: Error, _variables: TVariables) => void;
   onSettled?: (_variables: TVariables, _result?: TData, _error?: unknown) => void;
   pendingMessage?: string | ((_variables: TVariables) => string);
   successMessage?: string | ((_data: TData) => string);
   errorMessage?: string | ((_error: Error) => string);
+  retry?: number;
+  retryDelay?: number | ((_attemptIndex: number) => number);
 }
 /* eslint-enable no-unused-vars */
 
@@ -72,18 +118,29 @@ export function useAsyncTransaction<TData, TVariables = void>(
   mutationFnRef.current = mutationFn;
   optionsRef.current = options;
 
+  // #693: double-submit guard — tracks whether a transaction is in flight.
+  const isExecutingRef = useRef(false);
+
   const execute = useCallback(
     async (variables: TVariables) => {
+      // #693: reject concurrent submissions to prevent double purchases.
+      if (isExecutingRef.current) {
+        return Promise.reject(
+          new Error("A transaction is already in progress. Please wait for it to complete.")
+        );
+      }
+
       const txId = Date.now().toString();
       const currentOptions = optionsRef.current;
       let settledData: TData | undefined;
       let settledError: Error | undefined;
-      
+
+      isExecutingRef.current = true;
       setIsLoading(true);
       setError(null);
-      
-      // Fire Optimistic Update Hook
-      currentOptions?.onOptimistic?.(variables);
+
+      // #692: capture rollback data returned by the optimistic hook.
+      const rollbackData = currentOptions?.onOptimistic?.(variables);
 
       addTransaction({
         id: txId,
@@ -93,34 +150,71 @@ export function useAsyncTransaction<TData, TVariables = void>(
           : currentOptions?.pendingMessage || "Processing transaction...",
       });
 
-      try {
-        const result = await mutationFnRef.current(variables);
-        settledData = result;
-        setData(result);
-        
-        const successMsg = typeof currentOptions?.successMessage === 'function' 
-          ? currentOptions.successMessage(result) 
-          : currentOptions?.successMessage || "Transaction successful!";
-        
-        updateTransaction(txId, { status: "success", message: successMsg });
+      const maxRetries = typeof currentOptions?.retry === "number" ? currentOptions.retry : 0;
+      const resolveRetryDelay = (attemptIndex: number): number => {
+        const delay = currentOptions?.retryDelay;
+        if (typeof delay === "function") {
+          const value = delay(attemptIndex);
+          return typeof value === "number" ? value : 1000;
+        }
+        if (typeof delay === "number") {
+          return delay;
+        }
+        return 1000 * Math.pow(2, attemptIndex);
+      };
 
-        // Fire Query Invalidation Hook
-        currentOptions?.onSuccess?.(result, variables);
-        return result;
+      let attempt = 0;
+
+      try {
+        while (true) {
+          try {
+            const result = await mutationFnRef.current(variables);
+            settledData = result;
+            setData(result);
+
+            const successMsg = typeof currentOptions?.successMessage === 'function'
+              ? currentOptions.successMessage(result)
+              : currentOptions?.successMessage || "Transaction successful!";
+
+            updateTransaction(txId, { status: "success", message: successMsg });
+
+            // Fire Query Invalidation Hook
+            currentOptions?.onSuccess?.(result, variables);
+            return result;
+          } catch (err) {
+            lastError = err;
+            // #691: classify retryability on the ORIGINAL error message, before
+            // translation converts retryable keywords into friendly copy.
+            const originalMessage = err instanceof Error ? err.message : String(err);
+            const shouldRetry = attempt < maxRetries && isRetryableError(new Error(originalMessage));
+            if (!shouldRetry) {
+              const translated = translateStellarError(err);
+              const normalizedError = err instanceof Error ? err : new Error(translated);
+              settledError = normalizedError;
+              throw normalizedError;
+            }
+
+            attempt++;
+            await sleep(resolveRetryDelay(attempt - 1));
+          }
+        }
       } catch (err) {
         const translated = translateStellarError(err);
         const normalizedError = err instanceof Error ? err : new Error(translated);
         settledError = normalizedError;
-        
+
         let friendlyMessage = translated;
         if (currentOptions?.errorMessage) {
           friendlyMessage = typeof currentOptions.errorMessage === 'function'
             ? currentOptions.errorMessage(normalizedError)
             : currentOptions.errorMessage;
         }
-        
+
         setError(normalizedError);
-        
+
+        // #692: rollback optimistic updates on failure.
+        currentOptions?.onRollback?.(normalizedError, variables, rollbackData);
+
         // Inject the retry payload and map to the exact variables used
         updateTransaction(txId, {
           status: "error",
@@ -134,6 +228,7 @@ export function useAsyncTransaction<TData, TVariables = void>(
         currentOptions?.onError?.(normalizedError, variables);
         throw normalizedError;
       } finally {
+        isExecutingRef.current = false;
         setIsLoading(false);
         currentOptions?.onSettled?.(variables, settledData, settledError);
       }

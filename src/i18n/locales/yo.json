@@ -74,7 +74,9 @@
     "wallet": {
       "connect_required": "Jọ̀wọ́ kọ́kọ́ so àpamọ́wọ́ rẹ pọ̀.",
       "network_mismatch": "Àpamọ́wọ́ rẹ ti so mọ́ nẹ́tíwọ̀ọ̀kì tí kò tọ̀nà. Yí àpamọ́wọ́ rẹ padà sí nẹ́tíwọ̀ọ̀kì tó tọ̀nà kí o sì gbìyànjú lẹ́ẹ̀kan sí i.",
-      "disconnect_failed": "A kò lè yọ àsopọ̀ àpamọ́wọ́. Jọ̀wọ́ gbìyànjú lẹ́ẹ̀kan sí i, tàbí pa ìtẹ̀síwájú àpamọ́wọ́ rẹ kí o sì tún ṣí i."
+      "disconnect_failed": "A kò lè yọ àsopọ̀ àpamọ́wọ́. Jọ̀wọ́ gbìyànjú lẹ́ẹ̀kan sí i, tàbí pa ìtẹ̀síwájú àpamọ́wọ́ rẹ kí o sì tún ṣí i.",
+      "network_switch_warning": "Àpamọ́wọ́ rẹ ti so sí {{currentNetwork}} pẹ̀lú {{expectedNetwork}}. Jọ̀wọ́ sì pade sì {{expectedNetwork}} àti kọ́kọ́ so lórí àwọn àpamọ́wọ́ àpẹẹrẹ síì.",
+      "acknowledge_network_switch": "Mo ti kọkọ so sí àpamọ́wọ́ ní ìtẹ̀síwájú nẹ́tíwọ̀ọ̀kì."
     },
     "review": {
       "self_vote": "O kò lè dìbò lórí àgbéyẹ̀wò tìrẹ.",

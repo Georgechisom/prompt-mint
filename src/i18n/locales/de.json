@@ -74,7 +74,9 @@
     "wallet": {
       "connect_required": "Bitte verbinde zuerst deine Wallet.",
       "network_mismatch": "Deine Wallet ist mit dem falschen Netzwerk verbunden. Wechsle in deiner Wallet zum richtigen Netzwerk und versuche es erneut.",
-      "disconnect_failed": "Die Wallet konnte nicht getrennt werden. Bitte versuche es erneut oder schließe die Wallet-Erweiterung und öffne sie neu."
+      "disconnect_failed": "Die Wallet konnte nicht getrennt werden. Bitte versuche es erneut oder schließe die Wallet-Erweiterung und öffne sie neu.",
+      "network_switch_warning": "Ihre Wallet ist von {{currentNetwork}} auf {{expectedNetwork}} gewechselt. Bitte wechseln Sie zurück zu {{expectedNetwork}} und verbinden Sie sich erneut, bevor Sie signieren.",
+      "acknowledge_network_switch": "Ich habe mich im korrekten Netzwerk erneut verbunden."
     },
     "review": {
       "self_vote": "Du kannst nicht über deine eigene Bewertung abstimmen.",

@@ -74,7 +74,9 @@
     "wallet": {
       "connect_required": "Please connect your wallet first.",
       "network_mismatch": "Your wallet is connected to the wrong network. Switch your wallet to the correct network and try again.",
-      "disconnect_failed": "Failed to disconnect wallet. Please try again, or close and reopen your wallet extension."
+      "disconnect_failed": "Failed to disconnect wallet. Please try again, or close and reopen your wallet extension.",
+      "network_switch_warning": "Your wallet switched from {{currentNetwork}} to {{expectedNetwork}}. Please switch back and reconnect before signing.",
+      "acknowledge_network_switch": "I have reconnected on the correct network"
     },
     "review": {
       "self_vote": "You cannot vote on your own review.",

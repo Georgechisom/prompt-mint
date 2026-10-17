@@ -30,6 +30,7 @@ export interface WalletContextType {
   networkPassphrase?: string;
   status: WalletStatus;
   error?: string;
+  networkSwitchWarning: { expectedNetwork: string; currentNetwork: string } | null;
   connect: (_id: string) => Promise<void>;
   disconnect: () => Promise<void>;
   reconnect: () => Promise<void>;
@@ -37,6 +38,7 @@ export interface WalletContextType {
   signMessage: typeof wallet.signMessage;
   autoLockSecondsLeft: number | null;
   extendSession: () => void;
+  acknowledgeNetworkSwitch: () => void;
 }
 /* eslint-enable no-unused-vars */
 
@@ -62,6 +64,7 @@ const initialState = {
   networkPassphrase: undefined,
   status: "idle" as WalletStatus,
   error: undefined,
+  networkSwitchWarning: null as { expectedNetwork: string; currentNetwork: string } | null,
 };
 
 const boundSignTransaction = wallet.signTransaction.bind(wallet);
@@ -183,6 +186,11 @@ export const WalletProvider = ({ children }: { children: React.ReactNode }) => {
   const extendSession = useCallback(() => {
     lastActivityRef.current = Date.now();
     setAutoLockSecondsLeft(null);
+  }, []);
+
+  // #694: acknowledge the network-switch warning so the user can resume signing.
+  const acknowledgeNetworkSwitch = useCallback(() => {
+    setState((prev: any) => ({ ...prev, networkSwitchWarning: null }));
   }, []);
 
   // Auto-lock: disconnect the wallet after a configurable inactivity period.
@@ -325,6 +333,14 @@ export const WalletProvider = ({ children }: { children: React.ReactNode }) => {
     const handleNetworkChange = (event: Event) => {
       const customEvent = event as CustomEvent;
       console.log("Wallet network change detected:", customEvent.detail);
+      // #694: warn before signing when the wallet switches networks.
+      setState((prev: any) => ({
+        ...prev,
+        networkSwitchWarning: {
+          expectedNetwork: prev.network ?? stellarNetwork,
+          currentNetwork: customEvent.detail?.network ?? "unknown",
+        },
+      }));
       // Trigger reconnection to get updated network
       void reconnect();
     };
@@ -417,8 +433,9 @@ export const WalletProvider = ({ children }: { children: React.ReactNode }) => {
       signMessage: boundSignMessage,
       autoLockSecondsLeft,
       extendSession,
+      acknowledgeNetworkSwitch,
     }),
-    [state, connect, disconnect, reconnect, autoLockSecondsLeft, extendSession]
+    [state, connect, disconnect, reconnect, autoLockSecondsLeft, extendSession, acknowledgeNetworkSwitch]
   );
 
   return (

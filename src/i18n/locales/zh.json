@@ -74,7 +74,9 @@
     "wallet": {
       "connect_required": "请先连接您的钱包。",
       "network_mismatch": "钱包中配置的网络错误。",
-      "disconnect_failed": "断开钱包连接失败。"
+      "disconnect_failed": "断开钱包连接失败。",
+      "network_switch_warning": "您的钱包已从 {{currentNetwork}} 切换到 {{expectedNetwork}}。请切换回 {{expectedNetwork}} 并在签名前重新连接。",
+      "acknowledge_network_switch": "我已在正确的网络上重新连接。"
     },
     "review": {
       "self_vote": "您不能对自己的评论投票。",
